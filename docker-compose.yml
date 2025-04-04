@@ -1,0 +1,81 @@
+version: '3.8'
+
+services:
+  app:
+    build: .
+    image: vmz-wiki-automation
+    container_name: vmz-wiki-app
+    volumes:
+      - ./data:/app/data
+      - ./logs:/app/logs
+      - ./config.yaml:/app/config.yaml
+    environment:
+      - CUDA_VISIBLE_DEVICES=0
+      - TZ=Asia/Shanghai
+    depends_on:
+      - mongodb
+      - redis
+    networks:
+      - vmz-wiki-network
+    restart: unless-stopped
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+
+  mongodb:
+    image: mongo:6
+    container_name: vmz-wiki-mongodb
+    volumes:
+      - mongodb_data:/data/db
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=admin
+      - MONGO_INITDB_ROOT_PASSWORD=password
+    networks:
+      - vmz-wiki-network
+    restart: unless-stopped
+
+  redis:
+    image: redis:7
+    container_name: vmz-wiki-redis
+    volumes:
+      - redis_data:/data
+    command: redis-server --appendonly yes
+    networks:
+      - vmz-wiki-network
+    restart: unless-stopped
+
+  mongo-express:
+    image: mongo-express
+    container_name: vmz-wiki-mongo-express
+    environment:
+      - ME_CONFIG_MONGODB_ADMINUSERNAME=admin
+      - ME_CONFIG_MONGODB_ADMINPASSWORD=password
+      - ME_CONFIG_MONGODB_URL=mongodb://admin:password@mongodb:27017/
+    ports:
+      - "8081:8081"
+    networks:
+      - vmz-wiki-network
+    restart: unless-stopped
+
+  redis-commander:
+    image: rediscommander/redis-commander
+    container_name: vmz-wiki-redis-commander
+    environment:
+      - REDIS_HOSTS=redis
+    ports:
+      - "8082:8081"
+    networks:
+      - vmz-wiki-network
+    restart: unless-stopped
+
+networks:
+  vmz-wiki-network:
+    driver: bridge
+
+volumes:
+  mongodb_data:
+  redis_data: 

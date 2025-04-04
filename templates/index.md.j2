@@ -1,0 +1,37 @@
+# VMZ Wiki 视频索引
+
+## 统计信息
+- 总视频数: {{ videos|length }}
+- 总播放量: {{ videos|sum(attribute='view_count') }}
+- 总点赞数: {{ videos|sum(attribute='like_count') }}
+- 总投币数: {{ videos|sum(attribute='coin_count') }}
+- 总收藏数: {{ videos|sum(attribute='favorite_count') }}
+- 总分享数: {{ videos|sum(attribute='share_count') }}
+- 平均时长: {{ (videos|sum(attribute='duration') / videos|length)|round(2) }}秒
+- 更新时间: {{ now|datetime }}
+
+## 视频列表
+{% for video in videos|sort(attribute='pubdate', reverse=true) %}
+### {{ video.title }}
+- 视频ID: {{ video.bvid }}
+- UP主: {{ video.author }}
+- 发布时间: {{ video.pubdate|datetime }}
+- 时长: {{ video.duration|format_duration }}
+- 播放量: {{ video.view_count }}
+- 点赞数: {{ video.like_count }}
+- 投币数: {{ video.coin_count }}
+- 收藏数: {{ video.favorite_count }}
+- 分享数: {{ video.share_count }}
+- [查看详情]({{ video.bvid }}.md)
+
+{% endfor %}
+
+## 标签统计
+{% for tag, count in tags|dictsort(true, 'value')|reverse %}
+- {{ tag }}: {{ count }}
+{% endfor %}
+
+## 时间分布
+{% for month, count in monthly_stats|dictsort(true, 'value')|reverse %}
+- {{ month }}: {{ count }}
+{% endfor %} 

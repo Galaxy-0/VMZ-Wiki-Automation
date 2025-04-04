@@ -1,0 +1,138 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: vmz-wiki-mongodb
+  namespace: vmz-wiki
+spec:
+  serviceName: vmz-wiki-mongodb
+  replicas: 1
+  selector:
+    matchLabels:
+      app: vmz-wiki-mongodb
+  template:
+    metadata:
+      labels:
+        app: vmz-wiki-mongodb
+    spec:
+      containers:
+      - name: mongodb
+        image: mongo:6
+        ports:
+        - containerPort: 27017
+        env:
+        - name: MONGO_INITDB_ROOT_USERNAME
+          value: "admin"
+        - name: MONGO_INITDB_ROOT_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: vmz-wiki-secrets
+              key: mongodb-root-password
+        volumeMounts:
+        - name: mongodb-data
+          mountPath: /data/db
+  volumeClaimTemplates:
+  - metadata:
+      name: mongodb-data
+    spec:
+      accessModes: [ "ReadWriteOnce" ]
+      resources:
+        requests:
+          storage: 10Gi
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: vmz-wiki-redis
+  namespace: vmz-wiki
+spec:
+  serviceName: vmz-wiki-redis
+  replicas: 1
+  selector:
+    matchLabels:
+      app: vmz-wiki-redis
+  template:
+    metadata:
+      labels:
+        app: vmz-wiki-redis
+    spec:
+      containers:
+      - name: redis
+        image: redis:7
+        ports:
+        - containerPort: 6379
+        command: ["redis-server", "--appendonly", "yes"]
+        volumeMounts:
+        - name: redis-data
+          mountPath: /data
+  volumeClaimTemplates:
+  - metadata:
+      name: redis-data
+    spec:
+      accessModes: [ "ReadWriteOnce" ]
+      resources:
+        requests:
+          storage: 5Gi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: vmz-wiki-mongo-express
+  namespace: vmz-wiki
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: vmz-wiki-mongo-express
+  template:
+    metadata:
+      labels:
+        app: vmz-wiki-mongo-express
+    spec:
+      containers:
+      - name: mongo-express
+        image: mongo-express
+        ports:
+        - containerPort: 8081
+        env:
+        - name: ME_CONFIG_MONGODB_ADMINUSERNAME
+          value: "admin"
+        - name: ME_CONFIG_MONGODB_ADMINPASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: vmz-wiki-secrets
+              key: mongodb-root-password
+        - name: ME_CONFIG_MONGODB_URL
+          value: "mongodb://admin:$(ME_CONFIG_MONGODB_ADMINPASSWORD)@vmz-wiki-mongodb:27017/"
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: vmz-wiki-redis-commander
+  namespace: vmz-wiki
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: vmz-wiki-redis-commander
+  template:
+    metadata:
+      labels:
+        app: vmz-wiki-redis-commander
+    spec:
+      containers:
+      - name: redis-commander
+        image: rediscommander/redis-commander
+        ports:
+        - containerPort: 8081
+        env:
+        - name: REDIS_HOSTS
+          value: "vmz-wiki-redis"
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: vmz-wiki-secrets
+  namespace: vmz-wiki
+type: Opaque
+data:
+  mongodb-root-password: YWRtaW4xMjM=  # admin123 

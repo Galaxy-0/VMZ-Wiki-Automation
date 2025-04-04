@@ -1,0 +1,97 @@
+# Bilibili API配置
+bilibili:
+  api_key: ""  # Bilibili API密钥
+  up_mid: ""   # UP主ID
+  request_timeout: 30  # 请求超时时间(秒)
+  max_retries: 3      # 最大重试次数
+
+# 音频处理配置
+audio:
+  ffmpeg_path: "ffmpeg"  # ffmpeg可执行文件路径
+  output_dir: "data/audio"  # 音频输出目录
+  segment_duration: 300  # 音频分段时长(秒)
+  max_workers: 4        # 最大工作线程数
+  audio_format: "wav"   # 音频格式
+  sample_rate: 16000    # 采样率
+  channels: 1           # 声道数
+  bitrate: "128k"      # 比特率
+
+# 语音识别配置
+speech:
+  model_name: "base"    # Whisper模型名称
+  device: "cuda"        # 运行设备
+  output_dir: "data/transcripts"  # 转录输出目录
+  max_workers: 2        # 最大工作线程数
+  language: "zh"        # 语言
+  task: "transcribe"    # 任务类型
+  beam_size: 5          # 波束搜索大小
+  best_of: 5           # 最佳结果数
+
+# Markdown生成配置
+markdown:
+  template_dir: "templates"  # 模板目录
+  output_dir: "data/markdown"  # 输出目录
+  max_title_length: 100     # 最大标题长度
+  max_description_length: 500  # 最大描述长度
+  max_tags: 10             # 最大标签数
+  max_segments: 1000       # 最大分段数
+
+# 存储管理配置
+storage:
+  hot_storage_dir: "data/hot"      # 热存储目录
+  cold_storage_dir: "data/cold"    # 冷存储目录
+  temp_dir: "data/temp"           # 临时目录
+  min_free_space: 10737418240     # 最小剩余空间(10GB)
+  max_hot_storage_age: 2592000    # 最大热存储年龄(30天)
+  max_temp_storage_age: 86400     # 最大临时存储年龄(1天)
+  chunk_size: 1048576            # 下载块大小(1MB)
+  max_workers: 4                 # 最大工作线程数
+
+# 数据库配置
+database:
+  mongodb:
+    uri: "mongodb://localhost:27017"  # MongoDB连接URI
+    database: "vmz_wiki"              # 数据库名称
+    collections:
+      videos: "videos"               # 视频集合
+      tasks: "tasks"                 # 任务集合
+      stats: "stats"                 # 统计集合
+  redis:
+    host: "localhost"                # Redis主机
+    port: 6379                       # Redis端口
+    database: 0                      # Redis数据库
+    key_prefix: "vmz_wiki:"          # 键前缀
+
+# 视频过滤配置
+filter:
+  time_range:
+    start: "2024-01-01"             # 开始时间
+    end: "2024-12-31"               # 结束时间
+  duration_range:
+    min: 60                         # 最小时长(秒)
+    max: 3600                       # 最大时长(秒)
+  view_threshold: 1000              # 最小播放量
+  like_threshold: 100               # 最小点赞数
+  keywords:                         # 关键词列表
+    - "VMZ"
+    - "Wiki"
+  tags:                            # 标签列表
+    - "教程"
+    - "文档"
+  custom_rules: []                 # 自定义规则
+
+# 任务管理配置
+task:
+  max_retries: 3                   # 最大重试次数
+  retry_delay: 300                 # 重试延迟(秒)
+  batch_size: 5                    # 批处理大小
+  max_concurrent: 2                # 最大并发数
+  priority_levels:                 # 优先级级别
+    - "high"
+    - "normal"
+    - "low"
+  status_flow:                     # 状态流转
+    - "pending"
+    - "processing"
+    - "completed"
+    - "failed" 

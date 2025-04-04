@@ -1,0 +1,177 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: vmz-wiki-app
+  namespace: vmz-wiki
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: vmz-wiki
+  template:
+    metadata:
+      labels:
+        app: vmz-wiki
+    spec:
+      containers:
+      - name: vmz-wiki
+        image: yourusername/vmz-wiki-automation:latest
+        imagePullPolicy: Always
+        resources:
+          limits:
+            nvidia.com/gpu: 1
+            memory: "4Gi"
+            cpu: "2"
+          requests:
+            memory: "2Gi"
+            cpu: "1"
+        volumeMounts:
+        - name: data
+          mountPath: /app/data
+        - name: logs
+          mountPath: /app/logs
+        - name: config
+          mountPath: /app/config.yaml
+          subPath: config.yaml
+        env:
+        - name: CUDA_VISIBLE_DEVICES
+          value: "0"
+        - name: TZ
+          value: "Asia/Shanghai"
+      volumes:
+      - name: data
+        persistentVolumeClaim:
+          claimName: vmz-wiki-data-pvc
+      - name: logs
+        persistentVolumeClaim:
+          claimName: vmz-wiki-logs-pvc
+      - name: config
+        configMap:
+          name: vmz-wiki-config
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: vmz-wiki-app
+  namespace: vmz-wiki
+spec:
+  selector:
+    app: vmz-wiki
+  ports:
+  - port: 80
+    targetPort: 8080
+  type: ClusterIP
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: vmz-wiki-config
+  namespace: vmz-wiki
+data:
+  config.yaml: |
+    bilibili:
+      api_key: ""
+      up_mid: ""
+      request_timeout: 30
+      max_retries: 3
+    audio:
+      ffmpeg_path: "ffmpeg"
+      output_dir: "data/audio"
+      segment_duration: 300
+      max_workers: 4
+      audio_format: "wav"
+      sample_rate: 16000
+      channels: 1
+      bitrate: "128k"
+    speech:
+      model_name: "base"
+      device: "cuda"
+      output_dir: "data/transcripts"
+      max_workers: 2
+      language: "zh"
+      task: "transcribe"
+      beam_size: 5
+      best_of: 5
+    markdown:
+      template_dir: "templates"
+      output_dir: "data/markdown"
+      max_title_length: 100
+      max_description_length: 500
+      max_tags: 10
+      max_segments: 1000
+    storage:
+      hot_storage_dir: "data/hot"
+      cold_storage_dir: "data/cold"
+      temp_dir: "data/temp"
+      min_free_space: 10737418240
+      max_hot_storage_age: 2592000
+      max_temp_storage_age: 86400
+      chunk_size: 1048576
+      max_workers: 4
+    database:
+      mongodb:
+        uri: "mongodb://vmz-wiki-mongodb:27017"
+        database: "vmz_wiki"
+        collections:
+          videos: "videos"
+          tasks: "tasks"
+          stats: "stats"
+      redis:
+        host: "vmz-wiki-redis"
+        port: 6379
+        database: 0
+        key_prefix: "vmz_wiki:"
+    filter:
+      time_range:
+        start: "2024-01-01"
+        end: "2024-12-31"
+      duration_range:
+        min: 60
+        max: 3600
+      view_threshold: 1000
+      like_threshold: 100
+      keywords:
+        - "VMZ"
+        - "Wiki"
+      tags:
+        - "教程"
+        - "文档"
+      custom_rules: []
+    task:
+      max_retries: 3
+      retry_delay: 300
+      batch_size: 5
+      max_concurrent: 2
+      priority_levels:
+        - "high"
+        - "normal"
+        - "low"
+      status_flow:
+        - "pending"
+        - "processing"
+        - "completed"
+        - "failed"
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: vmz-wiki-data-pvc
+  namespace: vmz-wiki
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 100Gi
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: vmz-wiki-logs-pvc
+  namespace: vmz-wiki
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 10Gi 

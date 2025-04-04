@@ -1,0 +1,34 @@
+# 基础依赖
+aiohttp>=3.9.1
+motor>=3.3.2
+redis>=5.0.1
+PyYAML>=6.0.1
+jinja2>=3.1.2
+python-dotenv>=1.0.0
+pydantic>=2.5.2
+tenacity>=8.2.3
+tqdm>=4.66.1
+
+# 音频处理
+ffmpeg-python>=0.2.0
+numpy>=1.26.2
+scipy>=1.11.4
+
+# 语音识别
+openai-whisper>=20231117
+torch>=2.1.1
+torchaudio>=2.1.1
+
+# 测试依赖
+pytest>=7.4.3
+pytest-asyncio>=0.21.1
+pytest-cov>=4.1.0
+pytest-mock>=3.12.0
+pytest-timeout>=2.2.0
+
+# 开发工具
+black>=23.11.0
+pylint>=3.0.2
+mypy>=1.7.1
+isort>=5.12.0
+flake8>=6.1.0 

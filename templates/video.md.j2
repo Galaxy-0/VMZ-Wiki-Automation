@@ -1,0 +1,39 @@
+# {{ video_info.title }}
+
+## 基本信息
+- 视频ID: {{ video_info.bvid }}
+- UP主: {{ video_info.author }}
+- 发布时间: {{ video_info.pubdate|datetime }}
+- 时长: {{ video_info.duration|format_duration }}
+- 播放量: {{ video_info.view_count }}
+- 点赞数: {{ video_info.like_count }}
+- 投币数: {{ video_info.coin_count }}
+- 收藏数: {{ video_info.favorite_count }}
+- 分享数: {{ video_info.share_count }}
+
+## 视频标签
+{% for tag in video_info.tags %}
+- {{ tag }}
+{% endfor %}
+
+## 视频简介
+{{ video_info.description }}
+
+## 字幕内容
+{% for segment in transcript.segments %}
+### {{ segment.start|format_timestamp }} - {{ segment.end|format_timestamp }}
+{{ segment.text }}
+
+{% endfor %}
+
+## 相关链接
+- [Bilibili视频](https://www.bilibili.com/video/{{ video_info.bvid }})
+- [UP主主页](https://space.bilibili.com/{{ video_info.author_id }})
+
+## 处理信息
+- 处理时间: {{ now|datetime }}
+- 处理状态: {{ task_status }}
+- 处理进度: {{ task_progress }}%
+{% if task_error %}
+- 处理错误: {{ task_error }}
+{% endif %} 
